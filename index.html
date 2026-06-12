@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玉ねぎの洗脳ルーム</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Hiragino Mincho ProN', 'MS Mincho', serif;
+            background-color: #e0f2fe; /* 最初は爽やかな青空の色 */
+            color: #333333;
+            transition: all 0.5s ease;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 { font-size: 26px; margin-bottom: 5px; z-index: 10; letter-spacing: 2px; }
+        #status { font-size: 16px; color: #555; margin-bottom: 20px; z-index: 10; }
+        .onion-btn {
+            font-size: 80px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.1s, filter 0.5s;
+            z-index: 10;
+            user-select: none;
+        }
+        .onion-btn:active { transform: scale(0.85); }
+        #counter { font-size: 20px; margin-top: 20px; z-index: 10; font-weight: bold; }
+        
+        /* 洗脳メッセージ：2秒かけて浮き上がりながら消えるアニメーション */
+        .brainwash-text {
+            position: absolute;
+            font-weight: bold;
+            color: rgba(100, 40, 20, 0.6);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1;
+            animation: fadeOutUp 2s forwards linear;
+        }
+        @keyframes fadeOutUp {
+            0% { transform: translateY(0px) rotate(-1deg); opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { transform: translateY(-30px) rotate(1deg); opacity: 0; }
+        }
+        #authorContainer {
+            display: none;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff3333;
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(255,0,0,0.8);
+            animation: smokeGlow 2s infinite alternate;
+        }
+        @keyframes smokeGlow {
+            0% { opacity: 0.7; transform: scale(1); filter: blur(0px); }
+            100% { opacity: 1; transform: scale(1.05); filter: blur(1px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer" style="display: flex; flex-direction: column; align-items: center;">
+        <h1 id="title">爽やかな朝の玉ねぎ栽培室</h1>
+        <div id="status">画面中央の玉ねぎを収穫してください。</div>
+        <button class="onion-btn" id="onionBtn" onclick="brainwash()">🧅</button>
+        <div id="counter">信仰度: <span id="countVal">0</span> / 100</div>
+    </div>
+
+    <!-- 名前が出現する枠 -->
+    <div id="authorContainer">
+        <div id="creditLabel"></div>
+        <div id="authorName"></div>
+    </div>
+
+    <script>
+        let count = 0;
+        let audioCtx = null;
+        let isEnded = false;
+        let bgmStep = 0;
+        let bgmTimer = null;
+
+        // さわやかな朝（Morning）をイメージした美しい音階
+        const morningMelody = [261.63, 329.63, 392.00, 440.00, 523.25, 440.00, 392.00, 329.63];
+
+        const messages = [
+            "タマネギハ、全知全能ノ球体……",
+            "皮ヲ剥ク度ニ、真理ニ近付ク……",
+            "根ハ大地ヘ、魂ハタマネギヘ……",
+            "タマネギノ涙ハ、我ラノ贖罪……",
+            "一玉ハ全、全ハ一玉……",
+            "我ラ、大いなる層（レイヤー）の一部ナリ……",
+            "タマネギヲ信ジ、日々喰らい尽くせ……",
+            "血液の浄化、魂の昇華……",
+            "タマネギサマ……タマネギサマ……",
+            "崇メヨ……讃エヨ……",
+            "目を開け、そこに紫の輝きがある……",
+            "汝、タマネギを愛せるか？",
+            "球体こそが世界の完成形……",
+            "今日からあなたもタマネギの子……",
+            "神聖なる層を重ねよ……"
+        ];
+
+        function initAudio() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    // 1秒に2拍のペース（500msごと）でBGMを自動演奏ループ
+                    bgmTimer = setInterval(playBgmStep, 500);
+                } catch(e) {}
+            }
+        }
+
+        // 自動で鳴り続けるBGMループ（信仰度に合わせてリアルタイムに狂化）
+        function playBgmStep() {
+            if (isEnded || !audioCtx) return;
+            try {
+                const bgmOsc = audioCtx.createOscillator();
+                const bgmGain = audioCtx.createGain();
+                let baseNote = morningMelody[bgmStep % morningMelody.length];
+
+                if (count < 25) {
+                    // 通常：爽やかな朝の優しいサイン波
+                    bgmOsc.type = 'sine';
+                    bgmGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                } else if (count >= 25 && count < 55) {
+                    // 中盤：音が狂って不穏な三角波になる
+                    bgmOsc.type = 'triangle';
+                    baseNote += Math.sin(bgmStep) * (count - 20); 
+                    bgmGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                } else if (count >= 55 && count < 80) {
+                    // 終盤：超低音ののこぎり波になり、おぞましく響く
+                    bgmOsc.type = 'sawtooth';
+                    baseNote = (baseNote / 4) + (Math.random() * 15 - 7);
+                    bgmGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                } else if (count >= 80) {
+                    // 狂気：ノイズ重低音
+                    bgmOsc.type = 'sawtooth';
+                    baseNote = 35 + (Math.random() * 25);
+                    bgmGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                }
+
+                bgmOsc.frequency.setValueAtTime(baseNote, audioCtx.currentTime);
+                bgmOsc.connect(bgmGain);
+                bgmGain.connect(audioCtx.destination);
+                bgmOsc.start();
+                bgmGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                bgmOsc.stop(audioCtx.currentTime + 0.6);
+                bgmStep++;
+            } catch(e) {}
+        }
+
+        // 玉ねぎを叩いた時の打撃効果音
+        function playClickSound() {
+            if (!audioCtx) return;
+            try {
+                const clickOsc = audioCtx.createOscillator();
+                const clickGain = audioCtx.createGain();
+                
+                if (count < 25) {
+                    clickOsc.type = 'sine';
+                    clickOsc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    clickGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                } else if (count >= 25 && count < 55) {
+                    clickOsc.type = 'triangle';
+                    clickOsc.frequency.setValueAtTime(250, audioCtx.currentTime);
+                    clickGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                } else if (count >= 55 && count < 80) {
+                    clickOsc.type = 'sawtooth';
+                    clickOsc.frequency.setValueAtTime(80, audioCtx.currentTime);
+                    clickGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                } else if (count >= 80) {
+                    clickOsc.type = 'sawtooth';
+                    clickOsc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                    clickOsc.frequency.linearRampToValueAtTime(1300, audioCtx.currentTime + 0.05);
+                    clickGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                }
+
+                clickGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                clickOsc.connect(clickGain);
+                clickGain.connect(audioCtx.destination);
+                clickOsc.start();
+                clickOsc.stop(audioCtx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        function playTypeSound(isEnter = false) {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = isEnter ? 'sawtooth' : 'triangle';
+                osc.frequency.setValueAtTime(isEnter ? 120 : 600, audioCtx.currentTime);
+                gain.gain.setValueAtTime(isEnter ? 0.3 : 0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (isEnter ? 0.3 : 0.05));
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + (isEnter ? 0.3 : 0.05));
+            } catch(e) {}
+        }
+
+        function brainwash() {
+            if (isEnded) return;
+            initAudio(); // 1回目のクリックで音源をアクティブ＆BGM開始
+            count++;
+            if (count > 100) count = 100;
+            document.getElementById('countVal').innerText = count;
+            playClickSound();
+
+            if (count >= 10 && count < 25) {
+                document.getElementById('title').innerText = "おだやかな玉ねぎ礼拝堂";
+                document.body.style.backgroundColor = "#fef3c7";
+            } else if (count >= 25 && count < 55) {
+                document.getElementById('title').innerText = "◆大いなるタマネギ教団◆";
+                document.getElementById('status').innerText = "深く、深く、層の奥へお進みください。";
+                document.body.style.backgroundColor = "#ccbaa8";
+            } else if (count >= 55 && count < 80) {
+                document.getElementById('title').innerText = "⚙ 魂 の 剥 離 室 ⚙";
+                document.getElementById('status').innerText = "涙を流しなさい。それが洗礼です。";
+                document.body.style.backgroundColor = "#451a03";
+                document.body.style.color = "#f2ded0";
+            } else if (count >= 80 && count < 100) {
+                document.getElementById('title').innerText = "👁 🧅 全 エ 狂 異 崇 拝 🧅 👁";
+                document.getElementById('status').innerText = "モウ、剥ク皮ハ残サレテイナイ";
+                document.body.style.backgroundColor = "#000000";
+                document.body.style.color = "#ff3333";
+                document.getElementById('onionBtn').style.transform = "scale(1.5)";
+                document.getElementById('onionBtn').style.filter = "invert(1) sepia(1) saturate(5) hue-rotate(320deg)";
+            }
+
+            if (count === 100) {
+                isEnded = true;
