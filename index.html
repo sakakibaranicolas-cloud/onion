@@ -34,7 +34,7 @@
         .onion-btn:active { transform: scale(0.85); }
         #counter { font-size: 20px; margin-top: 20px; z-index: 10; font-weight: bold; }
         
-        /* 洗脳メッセージ：2秒かけて浮き上がりながら消えるアニメーション */
+        /* 洗脳メッセージ：2秒かけて浮き上がりながら消える */
         .brainwash-text {
             position: absolute;
             font-weight: bold;
@@ -49,15 +49,6 @@
             15% { opacity: 1; }
             85% { opacity: 1; }
             100% { transform: translateY(-30px) rotate(1deg); opacity: 0; }
-        }
-        #authorContainer {
-            display: none;
-            font-size: 36px;
-            font-weight: bold;
-            color: #ff3333;
-            margin: 20px 0;
-            text-shadow: 0 0 15px rgba(255,0,0,0.8);
-            animation: smokeGlow 2s infinite alternate;
         }
         @keyframes smokeGlow {
             0% { opacity: 0.7; transform: scale(1); filter: blur(0px); }
@@ -74,12 +65,6 @@
         <div id="counter">信仰度: <span id="countVal">0</span> / 100</div>
     </div>
 
-    <!-- 名前が出現する枠 -->
-    <div id="authorContainer">
-        <div id="creditLabel"></div>
-        <div id="authorName"></div>
-    </div>
-
     <script>
         let count = 0;
         let audioCtx = null;
@@ -87,7 +72,7 @@
         let bgmStep = 0;
         let bgmTimer = null;
 
-        // さわやかな朝（Morning）をイメージした美しい音階
+        // Morningをイメージした「ドミソラド」の美しい音階
         const morningMelody = [261.63, 329.63, 392.00, 440.00, 523.25, 440.00, 392.00, 329.63];
 
         const messages = [
@@ -102,23 +87,26 @@
             "タマネギサマ……タマネギサマ……",
             "崇メヨ……讃エヨ……",
             "目を開け、そこに紫の輝きがある……",
-            "汝、タマネギを愛せるか？",
-            "球体こそが世界の完成形……",
-            "今日からあなたもタマネギの子……",
-            "神聖なる層を重ねよ……"
+            "汝、タマネギを愛せるか？"
         ];
 
         function initAudio() {
             if (!audioCtx) {
                 try {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    // 1秒に2拍のペース（500msごと）でBGMを自動演奏ループ
-                    bgmTimer = setInterval(playBgmStep, 500);
                 } catch(e) {}
+            }
+            // Macのブロックを解除
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // 3回以上叩かれたら、BGM自動演奏ループを始動
+            if (audioCtx && !bgmTimer && count >= 3) {
+                bgmTimer = setInterval(playBgmStep, 450);
             }
         }
 
-        // 自動で鳴り続けるBGMループ（信仰度に合わせてリアルタイムに狂化）
+        // どんどん怖くなる背景BGMの自動ループ
         function playBgmStep() {
             if (isEnded || !audioCtx) return;
             try {
@@ -127,23 +115,19 @@
                 let baseNote = morningMelody[bgmStep % morningMelody.length];
 
                 if (count < 25) {
-                    // 通常：爽やかな朝の優しいサイン波
                     bgmOsc.type = 'sine';
                     bgmGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
                 } else if (count >= 25 && count < 55) {
-                    // 中盤：音が狂って不穏な三角波になる
                     bgmOsc.type = 'triangle';
-                    baseNote += Math.sin(bgmStep) * (count - 20); 
+                    baseNote += Math.sin(bgmStep) * (count - 20); // 音程がウネウネ狂う
                     bgmGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
                 } else if (count >= 55 && count < 80) {
-                    // 終盤：超低音ののこぎり波になり、おぞましく響く
                     bgmOsc.type = 'sawtooth';
-                    baseNote = (baseNote / 4) + (Math.random() * 15 - 7);
+                    baseNote = (baseNote / 4) + (Math.random() * 14 - 7); // 超低音ホラー
                     bgmGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
                 } else if (count >= 80) {
-                    // 狂気：ノイズ重低音
                     bgmOsc.type = 'sawtooth';
-                    baseNote = 35 + (Math.random() * 25);
+                    baseNote = 35 + (Math.random() * 25); // 地獄の地鳴り
                     bgmGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 }
 
@@ -151,13 +135,13 @@
                 bgmOsc.connect(bgmGain);
                 bgmGain.connect(audioCtx.destination);
                 bgmOsc.start();
-                bgmGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-                bgmOsc.stop(audioCtx.currentTime + 0.6);
+                bgmGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                bgmOsc.stop(audioCtx.currentTime + 0.5);
                 bgmStep++;
             } catch(e) {}
         }
 
-        // 玉ねぎを叩いた時の打撃効果音
+        // 玉ねぎを叩いた時のクリック効果音
         function playClickSound() {
             if (!audioCtx) return;
             try {
@@ -209,7 +193,7 @@
 
         function brainwash() {
             if (isEnded) return;
-            initAudio(); // 1回目のクリックで音源をアクティブ＆BGM開始
+            initAudio(); // クリックのたびに音のチェック
             count++;
             if (count > 100) count = 100;
             document.getElementById('countVal').innerText = count;
@@ -238,3 +222,12 @@
 
             if (count === 100) {
                 isEnded = true;
+                if (bgmTimer) clearInterval(bgmTimer);
+                
+                document.getElementById('gameContainer').style.display = 'none';
+                document.body.style.backgroundColor = "#000000";
+                
+                const elements = document.querySelectorAll('.brainwash-text');
+                elements.forEach(el => el.remove());
+                
+                setTimeout(() => {
